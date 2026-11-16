@@ -1,5 +1,5 @@
 /* TIMED: cache offline. Ao publicar uma versao nova, troque o numero abaixo. */
-var CACHE = 'timed-v14';
+var CACHE = 'timed-v15';
 var FILES = [
   './',
   './index.html',
