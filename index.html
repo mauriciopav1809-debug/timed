@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="TIMED">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#111111">
+<meta name="description" content="TIMED: cronometragem de cross country, funciona offline.">
+<title>TIMED</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<style>
+:root{--gold:#e6b92d;--gold2:#c49a2a;--blk:#111;--bg:#f5f3ec;--card:#fff;--tx:#111;--mu:#5c5848;--ln:#dcd5c0;--ok:#127a3a;--warn:#a87400;--bad:#c0161b;--acc:#7a5c0a;--stop:#e6b92d;--wbg:#fff5d6;--gbg:#ffe3e3}
+body.dark{--bg:#0b0b0b;--card:#171614;--tx:#f2efe6;--mu:#a8a294;--ln:#2e2b24;--ok:#2fae5f;--warn:#e6b92d;--bad:#ff4d4f;--acc:#e6b92d;--stop:#e6b92d;--wbg:#2e2408;--gbg:#3d1214}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--tx);font-family:-apple-system,system-ui,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+button{font-family:inherit;touch-action:manipulation;cursor:pointer}
+.t{font-variant-numeric:tabular-nums}
+.mu{color:var(--mu)}
+header{position:sticky;top:0;z-index:5;background:var(--blk);border-bottom:3px solid var(--gold);padding:7px 12px;display:flex;align-items:center;gap:8px}
+#emb{height:30px;width:auto;flex:none}
+.splash{display:block;width:210px;max-width:70%;height:auto;margin:6px auto 2px}
+#ti{font-weight:800;font-size:17px;letter-spacing:.06em;color:var(--gold);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#clk{font-size:22px;font-weight:800;color:var(--gold)}
+.upd{position:fixed;top:0;left:0;right:0;z-index:20;width:100%;background:var(--gold);color:#111;border:0;border-bottom:3px solid #111;font-weight:800;font-size:14px;padding:12px 10px;text-align:center}
+.upd[hidden]{display:none}
+.cred{text-align:center;font-size:12px;font-weight:600;color:var(--mu);margin:0 0 12px}
+.meta{display:block;font-size:12px;color:var(--mu);margin-top:4px;font-weight:500}
+dialog.importacao{width:calc(100% - 24px);max-width:860px;max-height:88dvh;overflow:auto;background:var(--bg);color:var(--tx);border:2px solid var(--gold);border-radius:14px;padding:16px}
+dialog.importacao::backdrop{background:#000a}
+.imap{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:8px}
+.imap label{margin-top:8px}
+.imap small{display:block;overflow-wrap:anywhere;margin:5px 0;color:var(--mu)}
+.importacao h2{font-size:20px;margin:0 0 8px}
+.importacao .tw{max-height:280px;overflow:auto}
+.importacao p{font-size:14px;line-height:1.45}
+.pill{font-size:11px;font-weight:700;border-radius:20px;padding:3px 8px;border:1.5px solid var(--ln);background:none;color:var(--mu)}
+header .pill{color:#bdb6a0;border-color:#4a463a}header .pill.ok{border-color:#5fd08a;color:#5fd08a}header .pill.wa{border-color:var(--gold);color:var(--gold)}
+main{padding:12px 12px 96px;max-width:720px;margin:0 auto}
+nav{position:fixed;bottom:0;left:0;right:0;z-index:5;display:flex;background:var(--blk);border-top:3px solid var(--gold);padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;padding:13px 4px 15px;background:none;border:0;color:#a8a294;font-size:14px;font-weight:700}
+nav button.on{color:var(--gold);box-shadow:inset 0 3px 0 var(--gold)}
+.card,.next,.run{background:var(--card);border:2px solid var(--ln);border-radius:14px;padding:12px}
+.next.w20{border-color:var(--gold2);background:var(--wbg)}
+.next.go0{border-color:var(--bad);background:var(--gbg)}
+.next.go0 .cd{color:var(--bad)}
+.lbl{font-size:12px;font-weight:800;letter-spacing:.04em;color:var(--mu)}
+.nm{font-size:19px;margin-top:4px}.nm b{font-size:22px;margin-right:4px}
+.cd{font-size:58px;font-weight:800;text-align:center;margin:6px 0 10px;line-height:1.05}
+.b{border:0;border-radius:12px;font-weight:800;font-size:20px;min-height:66px;padding:0 12px;color:#fff;letter-spacing:.02em}
+.b.go{background:var(--ok)}.b.stop{background:var(--stop);color:#111}.b.fin,.b.blk{background:var(--blk);color:var(--gold);border:2px solid var(--gold)}
+.b.conf{background:var(--bad)!important;color:#fff!important;font-size:16px}
+.b:disabled{opacity:.3}
+.full{width:100%}
+.sm{min-height:42px;font-size:15px;border-radius:10px;background:transparent;border:1.5px solid var(--ln);color:var(--tx);padding:0 12px;font-weight:700}
+.sm.conf{border-color:var(--bad);color:#fff;background:var(--bad)}
+.sm:disabled{opacity:.35}
+.row{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;justify-content:space-between}
+.sec{font-size:12px;font-weight:800;letter-spacing:.04em;color:var(--mu);margin:18px 2px 0}
+.run{margin-top:10px}
+.run.over{border-color:var(--warn)}.run.crit{border-color:var(--bad)}
+.run.stopd{border-color:var(--stop);background:var(--wbg)}
+.rh{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.rt{display:flex;align-items:center;margin-top:6px}
+.big{font-size:46px;font-weight:800;line-height:1}
+.stp{font-weight:800;color:#111;background:var(--stop);border-radius:8px;padding:5px 9px;font-size:16px;margin-left:10px}
+.stp:empty{display:none}
+.bar{height:9px;background:var(--ln);border-radius:5px;position:relative;overflow:hidden;margin:10px 0 6px}
+.bar i{display:block;height:100%;width:0;background:var(--ok)}
+.bar i.over{background:var(--warn)}.bar i.crit{background:var(--bad)}
+.bar::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--tx);opacity:.6}
+.inf{font-size:15px;font-weight:600}
+.bts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.ft{display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:13px}
+.lk{background:none;border:0;color:var(--bad);font-weight:700;font-size:14px;padding:8px 0 4px}
+.lk.conf{background:var(--bad);color:#fff;border-radius:8px;padding:8px 10px}
+.fin-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 2px;border-bottom:1px solid var(--ln);font-size:15px}
+.alert{background:var(--gbg);border:2px solid var(--bad);border-radius:12px;padding:10px;margin-bottom:10px;font-weight:600;font-size:14px}
+.empty{text-align:center;padding:16px 4px;color:var(--mu);font-weight:600}
+label{display:block;font-size:13px;color:var(--mu);margin:12px 0 4px;font-weight:600}
+input[type=text],input[type=number],input[type=tel],textarea,select{width:100%;font-size:17px;padding:10px;border:1.5px solid var(--ln);border-radius:10px;background:var(--bg);color:var(--tx);font-family:inherit}
+input[type=password]{width:100%;font-size:17px;padding:10px;border:1.5px solid var(--ln);border-radius:10px;background:var(--bg);color:var(--tx);font-family:inherit}
+.sync{font-size:9px;max-width:145px;white-space:normal}
+header .pill.bad{color:#ff6767;border-color:#ff6767}
+.sync-notice{max-width:720px;margin:10px auto;padding:12px;background:var(--wbg);border:2px solid var(--gold);border-radius:12px;font-size:14px}
+.sync-notice[hidden]{display:none}.sync-notice p{margin:0}
+@media(max-width:480px){header{flex-wrap:wrap;gap:5px;padding:7px 8px}#emb{height:24px}#ti{font-size:15px}#clk{font-size:19px}#wk{font-size:9px;padding:3px 5px}#sync{order:5;max-width:none;flex-basis:100%;text-align:center;padding:3px}.sync-notice{margin:10px 12px}}
+textarea{resize:vertical}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kv{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--ln);font-size:15px}
+.kv b{font-variant-numeric:tabular-nums}
+.chk{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:15px;font-weight:600}
+.chk input{width:22px;height:22px}
+.tip{font-size:14px;line-height:1.45;margin:6px 0 0;padding-left:18px}
+.lrow{display:flex;align-items:center;gap:8px;padding:9px 2px;border-bottom:1px solid var(--ln)}
+.lrow .o{width:26px;color:var(--mu);font-size:13px;font-weight:700}
+.lrow .x{flex:1;min-width:0;font-size:15px}
+.lrow .x b{margin-right:4px}
+.st{font-size:11px;font-weight:800;border-radius:6px;padding:2px 6px;border:1.5px solid var(--ln);color:var(--mu);white-space:nowrap}
+.st.pista{border-color:var(--ok);color:var(--ok)}.st.parado{border-color:var(--warn);color:var(--warn)}.st.chegou{border-color:var(--acc);color:var(--acc)}.st.fora{border-color:var(--bad);color:var(--bad)}
+.ib{min-width:40px;min-height:40px;border-radius:9px;border:1.5px solid var(--ln);background:none;color:var(--tx);font-size:16px;font-weight:800}
+.ib.conf{background:var(--bad);border-color:var(--bad);color:#fff;font-size:12px}
+.tw{overflow-x:auto;margin-top:10px;border:1.5px solid var(--ln);border-radius:12px;background:var(--card)}
+table{border-collapse:collapse;font-size:14px;white-space:nowrap;font-variant-numeric:tabular-nums}
+th,td{padding:8px 9px;border-bottom:1px solid var(--ln);text-align:left}
+th{font-size:12px;color:var(--mu)}
+td.r,th.r{text-align:right}
+tr.el td{color:var(--bad)}
+#cpy{margin-top:10px}
+</style>
+</head>
+<body>
+<button class="upd" id="upd" hidden>Nova versão disponível, toque para atualizar</button>
+<header>
+  <img id="emb" src="assets/emblema.png" alt="TIMED">
+  <div id="ti">TIMED</div>
+  <button id="wk" class="pill" data-a="tab" data-v="prova">TELA ?</button>
+  <button id="sync" class="pill sync" data-a="tab" data-v="prova">SALVO NO APARELHO</button>
+  <div id="clk" class="t">--:--:--</div>
+</header>
+<aside id="sync-conflito" class="sync-notice" role="status" hidden></aside>
+<main id="main"></main>
+<nav>
+  <button data-a="tab" data-v="pista">Pista</button>
+  <button data-a="tab" data-v="conj">Conjuntos</button>
+  <button data-a="tab" data-v="prova">Prova</button>
+  <button data-a="tab" data-v="res">Resultados</button>
+</nav>
+<script src="backup.js"></script>
+<script>
+(function(){
+"use strict";
+const BACKUP_URL = 'https://script.google.com/macros/s/AKfycbyrloVIh8vThuWKMwMBS-XbF9SLYYKffkLBaF8gRcBYLSpTHNzdGmhOxcHCGzx4Rpr13Q/exec';
+var KEY='cce_crono_v1';
+var APP_VERSION='1.2.1';
+var backup=null;
+/* CBH Anexo B, p. 82: velocidades do Cross Country por serie. */
+var SERIES={'BR50':350,'BR75':400,'BR90':450,'BR1*':500,'BR2*':520,'BR3*':550,'BR4*':570};
+function def(){return {cfg:{nome:'',ext:3000,vel:450,tc:'',int:120,som:true,dark:false,serie:'pers'},list:[]};}
+var S=null, storeOK=true;
+try{S=JSON.parse(localStorage.getItem(KEY));}catch(e){storeOK=false;}
+if(!S||!S.cfg||!Array.isArray(S.list))S=def();
+/* Dados antigos nao tem 'serie': abre como Personalizada. */
+if(!S.cfg.serie||(S.cfg.serie!=='pers'&&!SERIES[S.cfg.serie]))S.cfg.serie='pers';
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));storeOK=true;}catch(e){storeOK=false;}
+  if(backup)backup.alterado();}
+var view='pista';
+try{view=localStorage.getItem(KEY+'_view')||'pista';}catch(e){}
+var draft='', pend=null, pendTimer=null, copyFallback='';
+
+function $(s){return document.querySelector(s);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function meta(c){var a=[c.ent,c.cat].filter(Boolean);return a.length?'<small class="meta">'+a.map(esc).join(' · ')+'</small>':'';}
+var EXTRA=[['ord','Ordem'],['insc','Inscrição'],['ent','Entidade'],['eq','Equipe'],['cat','Categoria']];
+function extras(){return EXTRA.filter(function(f){return S.list.some(function(c){return !!c[f[0]];});});}
+function pad(n){return String(n).padStart(2,'0');}
+function dec(x){return x.toFixed(1).replace('.',',');}
+
+/* ---------- tempo ---------- */
+function parseMS(str){str=String(str==null?'':str).trim();if(!str)return null;
+  if(/^\d+$/.test(str))return (+str)*1000;
+  var m=str.match(/^(\d+):(\d{1,2})(?:[.,](\d+))?$/);
+  if(!m)return null;
+  var ms=((+m[1])*60+(+m[2]))*1000;
+  return m[3]?ms+Math.round(parseFloat('0.'+m[3])*1000):ms;}
+/* CBH Art. 555.1, p. 64: TC = extensao dividida pela velocidade da serie. */
+function tcAuto(){var e=+S.cfg.ext,v=+S.cfg.vel;return (e>0&&v>0)?Math.round(e/v*60)*1000:0;}
+/* CBH Art. 565, p. 66: o TC oficial do plano de percurso sempre prevalece. */
+function TC(){var m=parseMS(S.cfg.tc);return (m!=null&&m>0)?m:tcAuto();}
+/* CBH Art. 555.1, p. 64: Tempo Limite = 2 x Tempo Concedido. */
+function TL(){return 2*TC();}
+function fDur(ms,tenths){var neg=ms<0;ms=Math.abs(ms);var s,d=0;
+  if(tenths){var t=Math.floor(ms/100);d=t%10;s=Math.floor(t/10);}else s=Math.floor(ms/1000);
+  var h=Math.floor(s/3600),m=Math.floor(s%3600/60),ss=s%60;
+  return (neg?'-':'')+(h?h+':'+pad(m):m)+':'+pad(ss)+(tenths?','+d:'');}
+function tcFmt(ms){return fDur(ms,ms%1000!==0);}
+function fCd(ms){var s=Math.ceil(ms/1000);return Math.floor(s/60)+':'+pad(s%60);}
+function fClock(ts,tenths){if(!ts)return '';var d=new Date(ts);
+  return pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds())+(tenths?','+Math.floor(d.getMilliseconds()/100):'');}
+
+/* ---------- calculo de um conjunto ---------- */
+/* CBH Art. 555.2, p. 64 e Art. 560, p. 65: o tempo parado e deduzido do bruto. */
+function calc(c,now){var L=null,C=null,F=null,stops=0,pOpen=null,n=0;
+  c.ev.forEach(function(e){
+    if(e.k==='L')L=e.t;
+    else if(e.k==='P'){pOpen=e.t;n++;}
+    else if(e.k==='R'){if(pOpen!=null){stops+=e.t-pOpen;pOpen=null;}}
+    else if(e.k==='C')C=e.t;
+    else if(e.k==='F')F=e.t;});
+  var end=C!=null?C:(F!=null?F:now);
+  var open=pOpen!=null?Math.max(0,end-pOpen):0;
+  var neut=stops+open, bruto=L!=null?end-L:0, liq=bruto-neut;
+  var st=L==null?'aguardando':(C!=null?'chegou':(F!=null?'fora':(pOpen!=null?'parado':'pista')));
+  return {L:L,C:C,F:F,neut:neut,bruto:bruto,liq:liq,st:st,pOpen:pOpen,open:open,n:n};}
+/* CBH Art. 568.2, p. 70: 0,4 ponto por segundo comecado acima do TC. */
+function pen(liq){var tc=TC();if(!tc)return null;var over=liq-tc;if(over<=0)return 0;
+  return Math.round(Math.ceil(over/1000)*4)/10;}
+/* CBH Art. 568.2, p. 70: exceder o Tempo Limite acarreta eliminacao. */
+function elim(liq){var tl=TL();return tl>0&&liq>tl;}
+function byId(id){for(var i=0;i<S.list.length;i++)if(S.list[i].id===id)return S.list[i];return null;}
+function waiting(){return S.list.filter(function(c){return c.ev.length===0;});}
+function lastStart(){var m=0;S.list.forEach(function(c){c.ev.forEach(function(e){if(e.k==='L'&&e.t>m)m=e.t;});});return m;}
+function planned(){var m=lastStart();return m?m+S.cfg.int*1000:null;}
+var STL={aguardando:'Aguardando',pista:'Em pista',parado:'Parado',chegou:'Chegou',fora:'Retirado'};
+var EVN={L:'largada',P:'parada',R:'retomada',C:'chegada',F:'retirada'};
+function sit(k){if(k.st==='fora')return 'Retirado (elim./abandono)';
+  if(k.st==='chegou')return elim(k.liq)?'Eliminado (Tempo Limite)':'Concluiu';return STL[k.st];}
+function newId(){return 'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+
+/* ---------- som, vibracao, tela ---------- */
+var ac=null;
+function unlock(){try{if(!ac)ac=new (window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}catch(e){}}
+function beep(f,d){if(!S.cfg.som||!ac)return;try{var o=ac.createOscillator(),g=ac.createGain();o.type='square';o.frequency.value=f;g.gain.value=0.18;o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+d);}catch(e){}}
+function vib(p){try{if(navigator.vibrate)navigator.vibrate(p);}catch(e){}}
+var wl=null,wlOK=false,wlTried=false;
+function wake(){wlTried=true;try{if(!('wakeLock' in navigator)){updWL();return;}
+  navigator.wakeLock.request('screen').then(function(l){wl=l;wlOK=true;updWL();
+    l.addEventListener('release',function(){wlOK=false;updWL();});}).catch(function(){wlOK=false;updWL();});}catch(e){wlOK=false;updWL();}}
+function updWL(){var b=$('#wk');if(!wlTried){b.textContent='TELA ?';b.className='pill';return;}
+  b.textContent=wlOK?'TELA LIGADA':'TELA PODE APAGAR';b.className='pill '+(wlOK?'ok':'wa');}
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&wlTried)wake();});
+
+/* ---------- confirmacao em dois toques ---------- */
+function isPend(k,id){return pend&&pend.k===k&&pend.id===id;}
+function setPend(k,id,t){clearTimeout(pendTimer);pend={k:k,id:id,t:t};
+  pendTimer=setTimeout(function(){pend=null;render();},4000);render();}
+function clearPend(){clearTimeout(pendTimer);pend=null;}
+
+/* ---------- telas ---------- */
+function rPista(now){var h='',tc=TC();
+  if(!tc)h+='<div class="alert">Informe extensão e velocidade na aba Prova para calcular o Tempo Concedido.</div>';
+  var w=waiting(),nx=w[0];
+  h+='<section class="next" id="nx">';
+  if(nx){
+    h+='<div class="lbl">PRÓXIMO A LARGAR · '+w.length+' AGUARDANDO'+(tc?' · TC '+tcFmt(tc)+' · TL '+tcFmt(TL()):'')+'</div>'+
+      '<div class="nm"><b>'+esc(nx.num)+'</b>'+esc(nx.cav)+' <span class="mu">'+esc(nx.cavalo)+'</span>'+meta(nx)+'</div>'+
+      '<div class="cd t" id="cd">--</div>'+
+      '<button class="b blk full" data-a="larg" data-id="'+nx.id+'">LARGAR</button>'+
+      '<div class="row"><button class="sm" data-a="int" data-v="-15">−15 s</button>'+
+      '<span class="t">Intervalo <b>'+fDur(S.cfg.int*1000)+'</b></span>'+
+      '<button class="sm" data-a="int" data-v="15">+15 s</button>'+
+      '<button class="sm" data-a="pular" data-id="'+nx.id+'"'+(w.length<2?' disabled':'')+'>Pular</button></div>';
+  }else{
+    h+=S.list.length?'<div class="empty">Todos os conjuntos já largaram.</div>':
+      '<img class="splash" src="assets/emblema.png" alt="TIMED"><div class="empty">Nenhum conjunto cadastrado.</div>'+
+      '<div class="cred">1º Ten Veiga, Espora Dourada nº 1370</div>'+
+      '<button class="b fin full" data-a="tab" data-v="conj">Cadastrar conjuntos</button>';
+  }
+  h+='</section>';
+  var all=S.list.map(function(c){return {c:c,k:calc(c,now)};});
+  var run=all.filter(function(r){return r.k.st==='pista'||r.k.st==='parado';}).sort(function(a,b){return a.k.L-b.k.L;});
+  h+='<div class="sec">EM PISTA ('+run.length+')</div>';
+  if(!run.length)h+='<div class="empty">Nenhum conjunto em pista.</div>';
+  run.forEach(function(r){var c=r.c,k=r.k,par=k.st==='parado',last=c.ev[c.ev.length-1];
+    h+='<article class="run" data-run="'+c.id+'">'+
+      '<div class="rh"><div class="nm"><b>'+esc(c.num)+'</b>'+esc(c.cav)+' <span class="mu">'+esc(c.cavalo)+'</span>'+meta(c)+'</div>'+
+      '<button class="sm'+(isPend('U',c.id)?' conf':'')+'" data-a="undo" data-id="'+c.id+'">'+(isPend('U',c.id)?'Desfazer '+EVN[last.k]+'?':'Desfazer')+'</button></div>'+
+      '<div class="rt"><span class="big t" data-l="liq"></span><span class="stp t" data-l="stp"></span></div>'+
+      '<div class="bar"><i data-l="bar"></i></div>'+
+      '<div class="inf t" data-l="inf"></div>'+
+      '<div class="bts">'+(par?'<button class="b go" data-a="ret" data-id="'+c.id+'">RETOMAR</button>':'<button class="b stop" data-a="par" data-id="'+c.id+'">PARAR</button>')+
+      (isPend('C',c.id)?'<button class="b conf" data-a="che" data-id="'+c.id+'">CONFIRMAR<br>'+fClock(pend.t,true)+'</button>':
+        '<button class="b fin" data-a="che" data-id="'+c.id+'"'+(par?' disabled':'')+'>CHEGOU</button>')+'</div>'+
+      '<div class="ft"><span class="mu t">Largou '+fClock(k.L)+(k.n?' · '+k.n+' parada'+(k.n>1?'s':''):'')+'</span>'+
+      '<button class="lk'+(isPend('F',c.id)?' conf':'')+'" data-a="fora" data-id="'+c.id+'">'+(isPend('F',c.id)?'Confirmar retirada':'Retirar')+'</button></div>'+
+      '</article>';});
+  var fin=all.filter(function(r){return r.k.st==='chegou'||r.k.st==='fora';}).sort(function(a,b){return (b.k.C||b.k.F)-(a.k.C||a.k.F);});
+  if(fin.length){h+='<div class="sec">ENCERRADOS ('+fin.length+')</div><div class="card" style="padding:4px 12px;margin-top:8px">';
+    fin.forEach(function(r){var c=r.c,k=r.k,p=pen(k.liq),txt;
+      if(k.st==='fora')txt='<span style="color:var(--bad)">Retirado</span>';
+      else if(elim(k.liq))txt='<b class="t">'+fDur(k.liq,true)+'</b> <span style="color:var(--bad)">· Elim. TL</span>';
+      else txt='<b class="t">'+fDur(k.liq,true)+'</b>'+(p!=null?' <span class="mu t">· pen '+dec(p)+'</span>':'');
+      h+='<div class="fin-row"><span><b>'+esc(c.num)+'</b> '+esc(c.cav)+'<br>'+txt+'</span>'+
+        '<button class="sm'+(isPend('U',c.id)?' conf':'')+'" data-a="undo" data-id="'+c.id+'">'+(isPend('U',c.id)?'Reabrir?':'Desfazer')+'</button></div>';});
+    h+='</div>';}
+  return h;}
+
+function rConj(){var h='<section class="card"><div class="lbl">ADICIONAR CONJUNTOS</div>'+
+  '<button class="sm full" style="margin:10px 0" data-a="importar">Importar arquivo</button>'+
+  '<input type="file" id="arquivo" accept=".xlsx,.xls,.ods,.csv,.pdf" hidden>'+
+  '<textarea id="ta" rows="5" placeholder="Um por linha: número; cavaleiro; cavalo&#10;Ex.: 12; Sd Silva; Faraó">'+esc(draft)+'</textarea>'+
+  '<button class="b fin full" style="margin-top:10px;min-height:54px;font-size:18px" data-a="add">Prévia do texto colado</button>'+
+  '<p class="mu" style="font-size:13px;margin:8px 0 0">Separe por tabulação, ponto e vírgula ou |. Confira as colunas na prévia. Sem número, o app numera em sequência.</p></section>';
+  h+='<div class="sec">ORDEM DE ENTRADA ('+S.list.length+')</div><div class="card" style="padding:2px 10px;margin-top:8px">';
+  if(!S.list.length)h+='<div class="empty">Lista vazia.</div>';
+  var now=Date.now();
+  S.list.forEach(function(c,i){var k=calc(c,now),wt=k.st==='aguardando';
+    h+='<div class="lrow"><span class="o">'+(i+1)+'º</span><span class="x"><b>'+esc(c.num)+'</b>'+esc(c.cav)+' <span class="mu">'+esc(c.cavalo)+'</span>'+meta(c)+'</span>'+
+      (wt?'<button class="ib" data-a="up" data-id="'+c.id+'"'+(i===0?' disabled':'')+'>↑</button><button class="ib" data-a="down" data-id="'+c.id+'"'+(i===S.list.length-1?' disabled':'')+'>↓</button>'+
+      '<button class="ib'+(isPend('D',c.id)?' conf':'')+'" data-a="del" data-id="'+c.id+'">'+(isPend('D',c.id)?'Excluir?':'✕')+'</button>'
+      :'<span class="st '+k.st+'">'+STL[k.st]+'</span>')+'</div>';});
+  return h+'</div>';}
+
+function serieOpts(){var cur=S.cfg.serie||'pers';
+  var o='<option value="pers"'+(cur==='pers'?' selected':'')+'>Personalizada</option>';
+  Object.keys(SERIES).forEach(function(k){o+='<option value="'+k+'"'+(cur===k?' selected':'')+'>'+k+' ('+SERIES[k]+' m/min)</option>';});
+  return o;}
+function provaInfo(){var tc=TC(),tl=TL(),n=S.list.length,iv=S.cfg.int*1000,h='';
+  h+='<div class="kv"><span>TC calculado (estimativa)</span><b>'+(tcAuto()?fDur(tcAuto()):'--')+'</b></div>';
+  h+='<div class="kv"><span>Tempo Concedido em uso</span><b>'+(tc?tcFmt(tc):'--')+'</b></div>';
+  h+='<div class="kv"><span>Tempo Limite (2 × TC)</span><b>'+(tl?tcFmt(tl):'--')+'</b></div>';
+  h+='<div class="kv"><span>Intervalo de largada</span><b>'+fDur(iv)+'</b></div>';
+  if(tc&&iv){h+='<div class="kv"><span>Em pista ao mesmo tempo (no TC)</span><b>até '+Math.ceil(tc/iv)+'</b></div>';
+    if(n)h+='<div class="kv"><span>Duração estimada ('+n+' conjuntos)</span><b>'+fDur((n-1)*iv+tc)+'</b></div>';}
+  return h;}
+function rProva(){var c=S.cfg;
+  return '<section class="card"><div class="lbl">DADOS DA PROVA</div>'+
+  '<label>Nome da prova</label><input type="text" id="f_nome" value="'+esc(c.nome)+'" placeholder="Ex.: Cross Country · Série Preliminar">'+
+  '<label>Série</label><select id="f_serie">'+serieOpts()+'</select>'+
+  '<div class="g2"><div><label>Extensão (m)</label><input type="number" inputmode="numeric" id="f_ext" value="'+esc(c.ext)+'"></div>'+
+  '<div><label>Velocidade (m/min)</label><input type="number" inputmode="numeric" id="f_vel" value="'+esc(c.vel)+'"></div></div>'+
+  '<div class="g2"><div><label>TC oficial (opcional, m:ss ou m:ss,d)</label><input type="tel" id="f_tc" value="'+esc(c.tc)+'" placeholder="usa o TC calculado"></div>'+
+  '<div><label>Intervalo (m:ss)</label><input type="tel" id="f_int" value="'+fDur(c.int*1000)+'"></div></div>'+
+  '<p class="mu" style="font-size:13px;margin:6px 0 0">Use o TC oficial divulgado pelo Delegado Técnico, se houver.</p>'+
+  '<div id="pinfo" style="margin-top:12px">'+provaInfo()+'</div>'+
+  '<p class="mu" style="font-size:13px;margin:10px 0 0">Penalidade: 0,4 ponto por segundo começado acima do TC. Acima do TL: eliminação. Tempo líquido = bruto menos o tempo neutralizado nas paradas.</p>'+
+  '<p class="mu" style="font-size:13px;margin:6px 0 0">O tempo começa no sinal de partida ou ao cruzar a linha de partida, o que ocorrer primeiro (Art. 555.2).</p>'+
+  '<p class="mu" style="font-size:13px;margin:6px 0 0">Marque PARAR quando o conjunto passar galopando pelo Ponto de Parada após a ordem de parar, e RETOMAR quando repassar o mesmo ponto após a ordem de reinício. Não cronometrar a partir do cavalo parado (Art. 560).</p>'+
+  '<label class="chk"><input type="checkbox" id="f_som"'+(c.som?' checked':'')+'> Sinal sonoro na contagem de largada</label>'+
+  '<label class="chk"><input type="checkbox" id="f_dark"'+(c.dark?' checked':'')+'> Tema escuro</label></section>'+
+  backup.onlineHTML()+backup.arquivoHTML()+
+  '<div class="sec">ANTES DE COMEÇAR</div><section class="card" style="margin-top:8px"><ul class="tip">'+
+  '<li>iPhone: Ajustes › Tela e Brilho › Bloqueio Automático › <b>Nunca</b>, se o indicador mostrar "TELA PODE APAGAR".</li>'+
+  '<li>Tire o iPhone do modo silencioso para ouvir os bipes (20 s, 3-2-1 e largada).</li>'+
+  '<li>Instale na tela de início (Safari: Compartilhar, Adicionar à Tela de Início). Depois de aberto uma vez, funciona sem internet.</li>'+
+  '<li>Ao final, use Resultados › Copiar tabela e cole no Google Sheets.</li></ul></section>'+
+  '<div class="sec">REINICIAR</div><section class="card" style="margin-top:8px">'+
+  '<button class="sm full'+(isPend('Z','x')?' conf':'')+'" data-a="zerar" data-id="x">'+(isPend('Z','x')?'Toque de novo para zerar':'Zerar tempos (mantém conjuntos)')+'</button>'+
+  '<button class="sm full'+(isPend('A','x')?' conf':'')+'" style="margin-top:10px" data-a="apagar" data-id="x">'+(isPend('A','x')?'Toque de novo para apagar tudo':'Apagar conjuntos e tempos')+'</button></section>'+
+  '<div class="sec">SOBRE</div><section class="card" style="margin-top:8px">'+
+  '<p style="font-size:15px;line-height:1.5;margin:0 0 6px">TIMED: Temporizador Integrado Multiconjunto dos Esporas Douradas.</p>'+
+  '<p class="mu" style="font-size:14px;line-height:1.45;margin:0">Desenvolvido pelo 1º Ten Veiga, Espora Dourada nº 1370.</p>'+
+  '<div class="kv" style="margin-top:8px"><span>Versão</span><b>'+APP_VERSION+'</b></div></section>';}
+
+function resRows(now){return S.list.map(function(c){return {c:c,k:calc(c,now)};}).filter(function(r){return r.k.L;}).sort(function(a,b){return a.k.L-b.k.L;});}
+function rRes(now){var rows=resRows(now),tc=TC(),h='',ex=extras();
+  h+='<section class="card"><div class="lbl">'+esc(S.cfg.nome||'PROVA')+'</div><div class="mu" style="font-size:14px;margin-top:4px">'+
+    (S.cfg.ext||'--')+' m · '+(S.cfg.vel||'--')+' m/min · TC '+(tc?tcFmt(tc):'--')+' · TL '+(tc?tcFmt(TL()):'--')+'</div>'+
+    '<div class="g2" style="margin-top:10px"><button class="sm" data-a="copy">Copiar tabela</button><button class="sm" data-a="copylog">Copiar registro</button></div>'+
+    (copyFallback?'<textarea id="cpy" rows="6" readonly>'+esc(copyFallback)+'</textarea><p class="mu" style="font-size:13px;margin:6px 0 0">Cópia automática bloqueada: toque no texto, Selecionar Tudo e Copiar.</p>':'')+'</section>';
+  if(!rows.length)return h+'<div class="empty" style="margin-top:12px">Nenhum conjunto largou ainda.</div>';
+  h+='<div class="tw"><table><thead><tr><th>Ord</th><th>Nº</th><th>Conjunto</th>'+ex.map(function(f){return '<th>'+f[1]+'</th>';}).join('')+'<th>Largada</th><th>Chegada</th><th class="r">Bruto</th><th class="r">Neutr.</th><th class="r">Líquido</th><th class="r">Pen.</th><th>Situação</th></tr></thead><tbody>';
+  rows.forEach(function(r,i){var c=r.c,k=r.k,done=k.st==='chegou',p=done&&!elim(k.liq)?pen(k.liq):null,bad=k.st==='fora'||(done&&elim(k.liq));
+    h+='<tr'+(bad?' class="el"':'')+'><td>'+(i+1)+'</td><td><b>'+esc(c.num)+'</b></td><td>'+esc(c.cav)+' <span class="mu">'+esc(c.cavalo)+'</span></td>'+ex.map(function(f){return '<td>'+esc(c[f[0]])+'</td>';}).join('')+
+      '<td>'+fClock(k.L,true)+'</td><td>'+(done?fClock(k.C,true):'')+'</td>'+
+      '<td class="r">'+(done?fDur(k.bruto,true):'')+'</td><td class="r">'+(k.neut?fDur(k.neut,true):'')+'</td>'+
+      '<td class="r"><b>'+(done?fDur(k.liq,true):'')+'</b></td><td class="r">'+(p!=null?dec(p):'')+'</td><td>'+sit(k)+'</td></tr>';});
+  return h+'</tbody></table></div>';}
+
+function tsv(){var now=Date.now(),tc=TC(),L=[],ex=extras();
+  function cell(v){return String(v==null?'':v).replace(/[\t\r\n]+/g,' ');}
+  L.push((S.cfg.nome||'Prova')+'\t'+new Date().toLocaleDateString('pt-BR'));
+  L.push('Extensão (m)\t'+S.cfg.ext+'\tVelocidade (m/min)\t'+S.cfg.vel+'\tTC\t'+tcFmt(tc)+'\tTL\t'+tcFmt(TL()));
+  L.push('');
+  L.push(['Ord','Nº','Cavaleiro','Cavalo'].concat(ex.map(function(f){return f[1];}),['Largada','Chegada','Bruto','Neutralizado','Líquido','Líquido (s)','Penalidade','Situação']).join('\t'));
+  resRows(now).forEach(function(r,i){var c=r.c,k=r.k,done=k.st==='chegou',p=done&&!elim(k.liq)?pen(k.liq):null;
+    L.push([i+1,c.num,c.cav,c.cavalo].concat(ex.map(function(f){return c[f[0]]||'';}),[fClock(k.L,true),done?fClock(k.C,true):'',done?fDur(k.bruto,true):'',k.neut?fDur(k.neut,true):'',
+      done?fDur(k.liq,true):'',done?dec(Math.floor(k.liq/100)/10):'',p!=null?dec(p):'',sit(k)]).map(cell).join('\t'));});
+  return L.join('\n');}
+function logTxt(){var L=[(S.cfg.nome||'Prova')+' · registro de eventos · '+new Date().toLocaleDateString('pt-BR')];
+  S.list.forEach(function(c){if(!c.ev.length)return;
+    L.push(c.num+' '+c.cav+' ('+c.cavalo+'): '+c.ev.map(function(e){return EVN[e.k]+' '+fClock(e.t,true);}).join(' | '));});
+  return L.join('\n');}
+function copy(txt,btn){copyFallback='';var ok=function(){toastBtn(btn,'Copiado');},fail=function(){copyFallback=txt;render();};
+  try{navigator.clipboard.writeText(txt).then(ok,fail);}catch(e){fail();}}
+function toastBtn(b,msg){if(b){var o=b.textContent;b.textContent=msg;setTimeout(function(){b.textContent=o;},1500);}}
+
+function render(){document.body.classList.toggle('dark',!!S.cfg.dark);
+  Array.prototype.forEach.call(document.querySelectorAll('nav button'),function(b){b.classList.toggle('on',b.dataset.v===view);});
+  var now=Date.now(),h='';
+  if(!storeOK)h+='<div class="alert">Este navegador não está salvando os dados. Não feche nem recarregue a página durante a prova.</div>';
+  h+=view==='pista'?rPista(now):view==='conj'?rConj():view==='prova'?rProva():rRes(now);
+  $('#main').innerHTML=h;tick();if(backup)backup.atualizarUI();}
+
+/* ---------- atualizacao continua ---------- */
+var bKey=null,bDone={};
+function tick(){var now=Date.now();$('#clk').textContent=fClock(now);
+  var w=waiting(),p=planned();
+  if(w.length&&p){var rem=p-now;if(bKey!==p){bKey=p;bDone={};}
+    var s=Math.ceil(rem/1000);
+    if(rem<=20000&&rem>18000&&!bDone[20]){bDone[20]=1;beep(880,0.15);vib(200);}
+    [3,2,1].forEach(function(x){if(s===x&&rem>0&&!bDone[x]){bDone[x]=1;beep(880,0.1);}});
+    if(rem<=0&&rem>-1500&&!bDone[0]){bDone[0]=1;beep(1320,0.6);vib([300,100,300]);}}
+  if(view!=='pista')return;
+  var nx=$('#nx'),cd=$('#cd');
+  if(cd){if(!p){cd.textContent='PRONTO';nx.className='next';}
+    else{var r=p-now;if(r>20000){cd.textContent=fCd(r);nx.className='next';}
+      else if(r>0){cd.textContent=fCd(r);nx.className='next w20';}
+      else{cd.textContent='AGORA +'+fDur(-r);nx.className='next go0';}}}
+  var tc=TC(),tl=TL();
+  Array.prototype.forEach.call(document.querySelectorAll('[data-run]'),function(el){var c=byId(el.dataset.run);if(!c)return;
+    var k=calc(c,now),q=function(n){return el.querySelector('[data-l="'+n+'"]');};
+    q('liq').textContent=fDur(k.liq,true);
+    q('stp').textContent=k.st==='parado'?'PARADO '+fDur(k.open):'';
+    var cls='run',bc='';
+    if(tl&&k.liq>tl*0.9){cls+=' crit';bc='crit';}else if(tc&&k.liq>tc){cls+=' over';bc='over';}
+    if(k.st==='parado')cls+=' stopd';
+    el.className=cls;var b=q('bar');b.style.width=(tl?Math.min(100,k.liq/tl*100):0)+'%';b.className=bc;
+    var inf='';
+    if(tc){if(k.liq<=tc)inf='TC '+tcFmt(tc)+' · faltam '+fDur(tc-k.liq);
+      else if(k.liq<=tl)inf='+'+fDur(k.liq-tc)+' acima do TC · pen '+dec(pen(k.liq))+' · TL em '+fDur(tl-k.liq);
+      else inf='<span style="color:var(--bad)">ACIMA DO TEMPO LIMITE</span>';}
+    if(k.neut)inf+=(inf?' · ':'')+'neutr. '+fDur(k.neut);
+    q('inf').innerHTML=inf;});}
+
+/* ---------- acoes ---------- */
+var downT=0,downEl=null;
+document.addEventListener('pointerdown',function(e){var b=e.target.closest('[data-a]');if(b){downT=Date.now();downEl=b;}},true);
+document.addEventListener('click',function(e){var b=e.target.closest('[data-a]');if(!b||b.disabled)return;
+  var t=(downEl===b&&Date.now()-downT<1500)?downT:Date.now();downEl=null;
+  unlock();if(!wlTried||!wlOK)wake();
+  var a=b.dataset.a,id=b.dataset.id,c=id?byId(id):null;
+  switch(a){
+  case 'tab':view=b.dataset.v;copyFallback='';clearPend();try{localStorage.setItem(KEY+'_view',view);}catch(x){}render();window.scrollTo(0,0);return;
+  case 'larg':if(c&&!c.ev.length){c.ev.push({k:'L',t:t});clearPend();save();render();}return;
+  case 'par':if(c){c.ev.push({k:'P',t:t});save();render();}return;
+  case 'ret':if(c){c.ev.push({k:'R',t:t});save();render();}return;
+  case 'che':if(!c)return;if(isPend('C',id)){c.ev.push({k:'C',t:pend.t});clearPend();save();render();}else setPend('C',id,t);return;
+  case 'fora':if(!c)return;if(isPend('F',id)){if(calc(c,t).st==='parado')c.ev.push({k:'R',t:pend.t});c.ev.push({k:'F',t:pend.t});clearPend();save();render();}else setPend('F',id,t);return;
+  case 'undo':if(!c||!c.ev.length)return;if(isPend('U',id)){c.ev.pop();clearPend();save();render();}else setPend('U',id,t);return;
+  case 'int':S.cfg.int=Math.max(15,S.cfg.int+(+b.dataset.v));save();render();return;
+  case 'pular':if(c){S.list.splice(S.list.indexOf(c),1);S.list.push(c);save();render();}return;
+  case 'up':case 'down':if(!c)return;var i=S.list.indexOf(c),j=a==='up'?i-1:i+1;
+    if(j<0||j>=S.list.length)return;S.list[i]=S.list[j];S.list[j]=c;save();render();return;
+  case 'del':if(!c)return;if(isPend('D',id)){S.list.splice(S.list.indexOf(c),1);clearPend();save();render();}else setPend('D',id,t);return;
+  case 'importar':$('#arquivo').click();return;
+  case 'add':abrirImportacao(null,draft);return;
+  case 'copy':copy(tsv(),b);return;
+  case 'copylog':copy(logTxt(),b);return;
+  case 'zerar':if(isPend('Z','x')){S.list.forEach(function(x){x.ev=[];});clearPend();save();render();}else setPend('Z','x',t);return;
+  case 'apagar':if(isPend('A','x')){S.list=[];clearPend();save();render();}else setPend('A','x',t);return;}});
+
+var importando=false;
+async function abrirImportacao(file,texto){if(importando)return;importando=true;
+  try{var mod=await import('./importacao.js');
+    await mod.abrir({file:file,texto:texto,temLista:!!S.list.length,
+      confirmar:function(rows,modo){
+        var lista=modo==='substituir'?[]:S.list.slice(),maxN=0;
+        lista.concat(rows).forEach(function(c){var n=parseInt(c.num,10);if(n>maxN)maxN=n;});
+        rows.forEach(function(c){c.id=newId();c.ev=[];if(!c.num)c.num=String(++maxN);lista.push(c);});
+        S.list=lista;draft='';clearPend();save();render();
+      }});
+  }catch(e){alert('Não foi possível abrir a importação. Tente novamente.');}
+  finally{importando=false;}}
+
+document.addEventListener('input',function(e){var el=e.target;
+  if(el.id==='ta'){draft=el.value;return;}
+  var c=S.cfg;
+  if(el.id==='f_nome')c.nome=el.value;
+  else if(el.id==='f_serie'){c.serie=el.value;if(c.serie!=='pers'){c.vel=SERIES[c.serie];var fv=$('#f_vel');if(fv)fv.value=c.vel;}}
+  else if(el.id==='f_ext')c.ext=+el.value||0;
+  else if(el.id==='f_vel'){c.vel=+el.value||0;c.serie='pers';var fs=$('#f_serie');if(fs)fs.value='pers';}
+  else if(el.id==='f_tc')c.tc=el.value;
+  else if(el.id==='f_int'){var m=parseMS(el.value);if(m&&m>=15000)c.int=Math.round(m/1000);}
+  else if(el.id==='f_som')c.som=el.checked;
+  else if(el.id==='f_dark'){c.dark=el.checked;document.body.classList.toggle('dark',c.dark);}
+  else return;
+  save();var pi=$('#pinfo');if(pi)pi.innerHTML=provaInfo();});
+document.addEventListener('change',function(e){
+  if(e.target.id==='arquivo'){var f=e.target.files[0];e.target.value='';if(f)abrirImportacao(f,'');return;}
+  if(e.target.id==='f_som'||e.target.id==='f_dark'||e.target.id==='f_serie')e.target.dispatchEvent(new Event('input',{bubbles:true}));});
+
+/* ---------- PWA: instalacao e atualizacao ---------- */
+var swReg=null,updReload=false,hadCtl=!!(navigator.serviceWorker&&navigator.serviceWorker.controller);
+function mostrarUpd(){var b=$('#upd');if(b)b.hidden=false;}
+function acompanharSW(r){swReg=r;
+  if(r.waiting&&navigator.serviceWorker.controller)mostrarUpd();
+  r.addEventListener('updatefound',function(){var w=r.installing;if(!w)return;
+    w.addEventListener('statechange',function(){
+      if(w.state==='installed'&&navigator.serviceWorker.controller)mostrarUpd();});});}
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('sw.js').then(acompanharSW).catch(function(){});
+  });
+  navigator.serviceWorker.addEventListener('controllerchange',function(){
+    if(!hadCtl){hadCtl=true;return;}
+    if(updReload)return;updReload=true;location.reload();});
+}
+$('#upd').addEventListener('click',function(){
+  if(swReg&&swReg.waiting)swReg.waiting.postMessage({tipo:'atualizar'});
+  else location.reload();});
+
+backup=TIMEDBackup.criar({url:BACKUP_URL,versao:APP_VERSION,obter:function(){return S;},
+  aplicar:function(novo){
+    // Nao troca a memoria antes de confirmar a gravacao local.
+    localStorage.setItem(KEY,JSON.stringify(novo));
+    S=novo;storeOK=true;
+    if(!S.cfg.serie||(S.cfg.serie!=='pers'&&!SERIES[S.cfg.serie]))S.cfg.serie='pers';
+    clearPend();draft='';copyFallback='';
+  },renderizar:render});
+render();updWL();setInterval(tick,100);
+})();
+</script>
+</body>
+</html>

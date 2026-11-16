@@ -1,0 +1,37 @@
+{
+  "name": "TIMED: Temporizador Integrado Multiconjunto dos Esporas Douradas",
+  "short_name": "TIMED",
+  "description": "Cronometragem de cross country, com funcionamento offline.",
+  "lang": "pt-BR",
+  "display": "standalone",
+  "theme_color": "#111111",
+  "background_color": "#111111",
+  "start_url": "./",
+  "scope": "./",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
