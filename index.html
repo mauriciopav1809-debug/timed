@@ -135,7 +135,7 @@ tr.el td{color:var(--bad)}
 "use strict";
 const BACKUP_URL = 'https://script.google.com/macros/s/AKfycbyrloVIh8vThuWKMwMBS-XbF9SLYYKffkLBaF8gRcBYLSpTHNzdGmhOxcHCGzx4Rpr13Q/exec';
 var KEY='cce_crono_v1';
-var APP_VERSION='1.2.2';
+var APP_VERSION='1.3.0';
 var backup=null;
 /* CBH Anexo B, p. 82: velocidades do Cross Country por serie. */
 var SERIES={'BR50':350,'BR75':400,'BR90':450,'BR1*':500,'BR2*':520,'BR3*':550,'BR4*':570};
@@ -493,6 +493,37 @@ backup=TIMEDBackup.criar({url:BACKUP_URL,versao:APP_VERSION,obter:function(){ret
     if(!S.cfg.serie||(S.cfg.serie!=='pers'&&!SERIES[S.cfg.serie]))S.cfg.serie='pers';
     clearPend();draft='';copyFallback='';
   },renderizar:render});
+/* ---------- estatistica de uso anonima (um id aleatorio por aparelho) ---------- */
+(function(){
+  var KA='timed_acesso';
+  function ler(){try{return JSON.parse(localStorage.getItem(KA))||{};}catch(e){return {};}}
+  function gravar(o){try{localStorage.setItem(KA,JSON.stringify(o));}catch(e){}}
+  function hoje(){var d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+  var A=ler();
+  if(!A.id){A.id=Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);gravar(A);}
+  function plataforma(){var u=navigator.userAgent||'';
+    var so=/iPhone|iPad|iPod/.test(u)?'iOS':/Android/.test(u)?'Android':/Windows/.test(u)?'Windows':/Mac/.test(u)?'Mac':'Outro';
+    var inst=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
+    return so+(inst?' (instalado)':' (navegador)');}
+  function conjHoje(){var d=hoje(),n=0;S.list.forEach(function(c){c.ev.forEach(function(e){
+    if(e.k==='L'){var x=new Date(e.t);if(x.getFullYear()+'-'+pad(x.getMonth()+1)+'-'+pad(x.getDate())===d)n++;}});});return n;}
+  // Aberturas guardadas offline sao enviadas quando houver rede.
+  A.pend=(A.pend||0)+1;gravar(A);
+  var enviando=false;
+  function enviar(){
+    if(!BACKUP_URL||enviando||!navigator.onLine)return;
+    var d=hoje(),n=conjHoje();
+    if(!A.pend&&A.dia===d&&A.conj===n)return;
+    enviando=true;var ab=A.pend||0;
+    fetch(BACKUP_URL,{method:'POST',body:JSON.stringify({acao:'acesso',dispositivo:A.id,dia:d,
+      aberturas:ab,conjuntos:n,versao:APP_VERSION,plataforma:plataforma()})})
+      .then(function(r){return r.json();}).then(function(j){
+        if(j&&j.ok){A=ler();A.pend=Math.max(0,(A.pend||0)-ab);A.dia=d;A.conj=n;gravar(A);}})
+      .catch(function(){}).then(function(){enviando=false;});}
+  window.addEventListener('online',enviar);
+  setTimeout(enviar,4000);setInterval(enviar,10*60*1000);
+})();
+
 render();updWL();setInterval(tick,100);
 })();
 </script>
