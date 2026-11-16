@@ -135,7 +135,7 @@ tr.el td{color:var(--bad)}
 "use strict";
 const BACKUP_URL = 'https://script.google.com/macros/s/AKfycbyrloVIh8vThuWKMwMBS-XbF9SLYYKffkLBaF8gRcBYLSpTHNzdGmhOxcHCGzx4Rpr13Q/exec';
 var KEY='cce_crono_v1';
-var APP_VERSION='1.2.1';
+var APP_VERSION='1.2.2';
 var backup=null;
 /* CBH Anexo B, p. 82: velocidades do Cross Country por serie. */
 var SERIES={'BR50':350,'BR75':400,'BR90':450,'BR1*':500,'BR2*':520,'BR3*':550,'BR4*':570};
@@ -333,7 +333,9 @@ function rProva(){var c=S.cfg;
   '<div class="sec">SOBRE</div><section class="card" style="margin-top:8px">'+
   '<p style="font-size:15px;line-height:1.5;margin:0 0 6px">TIMED: Temporizador Integrado Multiconjunto dos Esporas Douradas.</p>'+
   '<p class="mu" style="font-size:14px;line-height:1.45;margin:0">Desenvolvido pelo 1º Ten Veiga, Espora Dourada nº 1370.</p>'+
-  '<div class="kv" style="margin-top:8px"><span>Versão</span><b>'+APP_VERSION+'</b></div></section>';}
+  '<div class="kv" style="margin-top:8px"><span>Feedback ou ajuda</span><a href="https://wa.me/5521997747191" target="_blank" rel="noopener" style="color:var(--acc);font-weight:700">WhatsApp (21) 99774-7191</a></div>'+
+  '<div class="kv"><span>Instruções de uso</span><a href="guia/TIMED-Guia-Rapido.pdf" target="_blank" rel="noopener" style="color:var(--acc);font-weight:700">Guia rápido (PDF)</a></div>'+
+  '<div class="kv"><span>Versão</span><b>'+APP_VERSION+'</b></div></section>';}
 
 function resRows(now){return S.list.map(function(c){return {c:c,k:calc(c,now)};}).filter(function(r){return r.k.L;}).sort(function(a,b){return a.k.L-b.k.L;});}
 function rRes(now){var rows=resRows(now),tc=TC(),h='',ex=extras();

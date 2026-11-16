@@ -1,5 +1,5 @@
 /* TIMED: cache offline. Ao publicar uma versao nova, troque o numero abaixo. */
-var CACHE = 'timed-v12';
+var CACHE = 'timed-v13';
 var FILES = [
   './',
   './index.html',
@@ -14,7 +14,8 @@ var FILES = [
   './icons/apple-touch-icon.png',
   './lib/xlsx.full.min.js',
   './lib/pdf.min.mjs',
-  './lib/pdf.worker.min.mjs'
+  './lib/pdf.worker.min.mjs',
+  './guia/TIMED-Guia-Rapido.pdf'
 ];
 
 self.addEventListener('install', function (e) {
